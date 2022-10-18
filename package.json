@@ -1,15 +1,15 @@
 {
     "name": "@gvfoster/fast-controllers-test",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "class based controllers for Fastify",
     "author": { "name": "Greg Foster" },
-    "main": "build/src/index.js",
+    "main": "./index.js",
     "exports": {
-        ".": "./build/index.js",
-        "./FastController": "./build/FastController.js",
-        "./SecureFastController": "./build/SecureFastController.js",
-        "./fastControllers": "./build/fastControllers.js",
-        "./errors/*": "./build/errors/*.js"
+        ".": "./index.js",
+        "./FastController": "./FastController.js",
+        "./SecureFastController": "./SecureFastController.js",
+        "./fastControllers": "./fastControllers.js",
+        "./errors/*": "./errors/*.js"
     },
     "repository": { "type": "git", "url": "git+https://github.com/gvfoster/fast-controllers.git" },
     "keywords": [ "Fastify", "Controllers" ],
