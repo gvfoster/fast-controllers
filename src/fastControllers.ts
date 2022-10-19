@@ -28,39 +28,44 @@ async function fastControllers( instance: FastifyInstance, options: FastifyPlugi
         throw new FastControllerError_InvalidControllerPath(options.path || 'undefined')
     }
 
-    // Scan the controllers directory and get an array of module paths to import
-    ( async function scan(path: string): Promise<Array<string>> {
-        
-        const paths = new Array<string>() 
-        const dir = fs.opendirSync(path)
-    
-        let entry = dir.readSync()
-        while(entry) {
-            
-            if(entry.isDirectory() && !entry.name.startsWith('.')) {
-                paths.concat( await scan(dir.path + '/' + entry.name) )
-            }
-            else if(entry.isFile() && !entry.name.includes('index') ) {
-                paths.push(path.substring( 0, (dir.path + '/' + entry.name).lastIndexOf('.') ))
-            }
-            
-            entry = dir.readSync()
-        }
-    
-        return paths
+    new Promise<Array<string>>( (resolve, reject) => {
 
-    })(options.path)
+        function scan(path: string): Array<string> {
+        
+            const paths = new Array<string>() 
+            const dir = fs.opendirSync(path)
+        
+            let entry = dir.readSync()
+            while(entry) {
+                
+                if(entry.isDirectory() && !entry.name.startsWith('.')) {
+                    paths.push( ...scan(dir.path + '/' + entry.name) )
+                }
     
+                else if(entry.isFile() && !entry.name.startsWith('index', 0) ) {
+    
+                    let modulePath = (dir.path + '/' + entry.name)
+                    paths.push( modulePath.substring(0, modulePath.lastIndexOf('.')) )
+                }
+                
+                entry = dir.readSync()
+            }
+    
+            dir.close()
+            return paths
+        }
+
+        resolve(scan(options.path))
+    })
+
     // Then import each module and return an array of modules with routes  
     .then( paths => { 
-            
-        console.log(paths)
-    
-        return Promise.all( paths.map( paths => {
-            return import(paths).then( module => {
+      
+        return Promise.all( paths.map( path => {
+            return import(path).then( module => {
                 return {
                     controller: module.default, 
-                    route: paths.substring( (paths.indexOf('controllers') + 11) ).toLowerCase()
+                    route: path.substring( options.path.length ).toLowerCase()
                 } as FastControllerModule
             }) 
         }))
@@ -77,16 +82,15 @@ async function fastControllers( instance: FastifyInstance, options: FastifyPlugi
             
             scopedModules[module.controller.scope]?.push(module)
         })
-
+ 
         return scopedModules
     })
 
-    // Return a consolidated promise for  all controller scopes
+    // Return a consolidated promise for all controller scopes
     .then( scopedModules => {
 
         return Promise.all( Object.keys(scopedModules).map( scope => {
-            return instance.register( ( _scope, _, next) => {
-
+            return instance.register( ( _scope, options, next) => {
                 scopedModules[scope]?.forEach( module => {
                     _scope.route(new module.controller(_scope, module.route) as RouteOptions)
                 })
@@ -96,8 +100,12 @@ async function fastControllers( instance: FastifyInstance, options: FastifyPlugi
         }))
     })
 
-    // Call the plugin done call back
-    .finally(() => { done() })
+    .catch( err => {
+        console.error(err)
+        done(err)
+    })
+
+    .then( () => { done() } )
 }
 
 export default fastControllers

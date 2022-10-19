@@ -1,6 +1,6 @@
 {
     "name": "@gvfoster/fast-controllers-test",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "class based controllers for Fastify",
     "author": { "name": "Greg Foster" },
     "main": "./index.js",
@@ -16,7 +16,6 @@
     "license": "ISC",
     "bugs": { "url": "https://github.com/gvfoster/fast-controllers/issues" },
     "homepage": "https://github.com/gvfoster/fast-controllers#readme",
-    
     "dependencies": { "fastify": "^4.9.2" },
     "devDependencies": {
         "ts-node": "^10.9.1",

@@ -88,35 +88,35 @@ class FastController {
 
     public get?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public head?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public head?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public patch?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public patch?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public post?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public post?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public put?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public put?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public options?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public options?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public search?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public search?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public trace?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public trace?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public propfind?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public propfind?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public proppatch?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public proppatch?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public mkcol?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public mkcol?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public copy?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public copy?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public move?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public move?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public lock?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public lock?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public unlock?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string
+    public unlock?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
-    public handle?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
+    public handle?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object 
 
 }
 

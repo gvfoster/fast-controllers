@@ -1,8 +1,8 @@
-import { FastController } from "../../src"
+import FastController from "../../../../src/FastController"
 
 export default class Hello extends FastController {
 
-    schema = {
+    public override schema = {
         response: {
             200: {
                 type: 'object',
@@ -14,7 +14,10 @@ export default class Hello extends FastController {
         }
     } 
 
-    public get() {
-        return { hi: 'there', hey: 'yo' }
+    public override get() {
+
+        // This will return nothing due to json schema defined above 
+        // delete the schema override to see result
+        return { data: 'feeling just fine' }
     }
 }
