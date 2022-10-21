@@ -1,8 +1,8 @@
 {
-    "name": "@gvfoster/fast-controllers",
-    "version": "0.0.3",
+    "name": "fast-controllers",
+    "version": "0.0.2",
     "description": "class based controllers for Fastify",
-    "author": { "name": "Greg Foster" },
+    "author": { "name": "Greg Foster (gvfoster)" },
     "main": "./index.js",
     "exports": {
         ".": "./index.js",
