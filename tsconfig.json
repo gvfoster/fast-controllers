@@ -9,7 +9,6 @@
       "module": "CommonJS",
       "target": "ES2022",
       "declaration": true,
-      //"declarationMap": true,
       "strict": true,
       "outDir": "build",
       "esModuleInterop": true,
@@ -25,7 +24,6 @@
       "noUncheckedIndexedAccess": true,
       "noUnusedLocals": false,
       "noUnusedParameters": false,
-      "importsNotUsedAsValues": "error",
       "checkJs": true
     },
     "exclude": [

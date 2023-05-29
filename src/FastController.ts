@@ -86,6 +86,8 @@ class FastController {
 
     public onPreValidation?(request: FastifyRequest, reply: FastifyReply, done: (err?:Error)=>void ) : void | Promise<unknown> | string 
 
+    public delete?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
+    
     public get?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
     public head?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object

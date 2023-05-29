@@ -9,6 +9,13 @@ import FastControllerError_InvalidControllerPath from './errors/FastControllerEr
 
 type FastControllerModule = { controller: typeof FastController, route: string }
 
+type FastControllerOptions = {
+    path: string,
+    logger?: (string) 
+}
+
+let logger = ( message: string ) => {}
+
 /**
  * FastControllers Fastify Plugin
  * This plugin allows for defining, and registering routes through
@@ -22,10 +29,16 @@ type FastControllerModule = { controller: typeof FastController, route: string }
  * @param options  - The provided Fastify options object
  * @param done     - The plugin done callback 
  */
-async function fastControllers(instance: FastifyInstance, options: FastifyPluginOptions & { path: string }, done: (err?: Error) => void) {
+async function fastControllers(instance: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void) {
 
-    if (!options || !options.path || !path.isAbsolute(options.path)) {
-        throw new FastControllerError_InvalidControllerPath(options.path || 'undefined')
+    const opts = options as FastControllerOptions
+
+    if (!options || !opts.path || !path.isAbsolute(opts.path)) {
+        throw new FastControllerError_InvalidControllerPath(opts.path || 'undefined')
+    }
+
+    if(opts.logger && typeof opts.logger == 'function') {
+        logger = opts.logger
     }
 
     new Promise<Array<string>>((resolve, reject) => {
@@ -55,7 +68,7 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
             return paths
         }
 
-        resolve(scan(options.path))
+        resolve(scan(opts.path))
     })
 
         // Then import each module and return an array of modules with routes  
@@ -65,7 +78,7 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
                 return import(path).then(module => {
                     return {
                         controller: module.default,
-                        route: path.substring(options.path.length).toLowerCase()
+                        route: path.substring(opts.path.length).toLowerCase()
                     } as FastControllerModule
                 })
             }))
