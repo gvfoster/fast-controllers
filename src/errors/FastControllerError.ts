@@ -3,12 +3,13 @@
 class FastControllerError extends Error {
     
     override name = 'FastControllerError'
-    
-    constructor(message:string) {
+    public statusCode = 500
+
+    constructor(message:string, statusCode?:number) {
 
         super(message)
 
-        console.log(`FastControllerError.name: ${this.name}`)
+        this.statusCode = statusCode || this.statusCode
     }
 }
 

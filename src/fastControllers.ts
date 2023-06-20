@@ -105,7 +105,7 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
             return Promise.all(Object.keys(scopedModules).map(scope => {
                 return instance.register((_scope, options, next) => {
                     scopedModules[scope]?.forEach(module => {
-                        _scope.route(new module.controller(_scope, module.route) as RouteOptions)
+                        _scope.route(new module.controller(instance, module.route) as RouteOptions)
                     })
 
                     next()

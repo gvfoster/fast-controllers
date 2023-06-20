@@ -4,9 +4,12 @@ import FastController from './FastController'
 
 
 class SecureFastController extends FastController {
+
     static override scope = 'secured'
 
-    override onPreValidation(request: FastifyRequest, reply: FastifyReply, done: (err?:Error)=>void) {
+    public override onPreValidation(request: FastifyRequest, reply: FastifyReply, done: (err?:Error) => void) {
+        
+        console.log('preValidation')
         done()
     }
 }
