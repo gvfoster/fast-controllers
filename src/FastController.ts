@@ -47,6 +47,13 @@ class FastController {
     public method: Array<string> | string
 
     /**
+     * Getter returns the array version of method property
+     */
+    public get methods() {
+        return Array.isArray(this.method) ? this.method : [this.method]
+    }
+
+    /**
      * FastController constructor
      * 
      * @param i - The FastifyInstance
@@ -111,6 +118,7 @@ class FastController {
      */
     public handler = (requestOrConn: FastifyRequest | SocketStream, replyOrRequest: FastifyReply | FastifyRequest): void | Promise<unknown> | string | object => {
     
+        // Determine if this is a websocket connection and if so, call the websocket handler
         if(requestOrConn.socket !== undefined && typeof this.webSocketHandler === 'function') {
         
             return this.webSocketHandler(requestOrConn as SocketStream, replyOrRequest as FastifyRequest)

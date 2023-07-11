@@ -1,6 +1,8 @@
 import fastify from 'fastify'
-import fastControllers from '../src/fastControllers'
+
 import fastifyWebsocket from '@fastify/websocket'
+
+import fastControllers from '../src/fastControllers'
 
 fastify({ logger: true })
 

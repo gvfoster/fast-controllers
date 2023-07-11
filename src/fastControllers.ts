@@ -105,7 +105,28 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
             return Promise.all(Object.keys(scopedModules).map(scope => {
                 return instance.register((_scope, options, next) => {
                     scopedModules[scope]?.forEach(module => {
-                        _scope.route(new module.controller(instance, module.route) as RouteOptions)
+
+                        const controller = new module.controller(instance, module.route) as FastController
+                        const methods = controller.methods
+
+                        if(methods.includes('GET') && methods.includes('POST') || methods.includes('PUT') || methods.includes('DELETE') || methods.includes('PATCH')) {
+                            
+                            const getController = new module.controller(instance, module.route) as FastController
+                            delete getController.schema.body
+                            getController.method = getController.methods.filter(method => !['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) )
+
+                            _scope.route(getController as RouteOptions)
+
+                            const bodyController = new module.controller(instance, module.route) as FastController
+                            delete bodyController.schema.querystring
+                            bodyController.method = bodyController.methods.filter(method => method !== 'GET')
+
+                            _scope.route(bodyController as RouteOptions)
+                        }
+                        else {
+
+                            _scope.route(controller as RouteOptions)
+                        }
                     })
 
                     next()
