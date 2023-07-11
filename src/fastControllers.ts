@@ -109,7 +109,9 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
                         const controller = new module.controller(instance, module.route) as FastController
                         const methods = controller.methods
 
-                        if(methods.includes('GET') && methods.includes('POST') || methods.includes('PUT') || methods.includes('DELETE') || methods.includes('PATCH')) {
+                        if( methods.includes('GET') 
+                            && methods.includes('POST') || methods.includes('PUT') || methods.includes('DELETE') || methods.includes('PATCH')
+                            && controller.schema.querystring && controller.schema.body ) {
                             
                             const getController = new module.controller(instance, module.route) as FastController
                             delete getController.schema.body
