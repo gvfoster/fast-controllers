@@ -7,14 +7,17 @@ import type FastController from './FastController'
 import FastControllerError_InvalidControllerPath from './errors/FastControllerError_InvalidControllerPath'
 
 
+
 type FastControllerModule = { controller: typeof FastController, route: string }
 
 type FastControllerOptions = {
     path: string,
-    logger?: (string) 
+    logger?: (string)
 }
 
-let logger = ( message: string ) => {}
+let logger = (message: string) => { }
+
+const bodyMethods = ['POST', 'PUT', 'DELETE', 'PATCH']
 
 /**
  * FastControllers Fastify Plugin
@@ -37,7 +40,7 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
         throw new FastControllerError_InvalidControllerPath(opts.path || 'undefined')
     }
 
-    if(opts.logger && typeof opts.logger == 'function') {
+    if (opts.logger && typeof opts.logger == 'function') {
         logger = opts.logger
     }
 
@@ -106,25 +109,84 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
                 return instance.register((_scope, options, next) => {
                     scopedModules[scope]?.forEach(module => {
 
+                        // Create a new instance of the controller to get the methods
                         const controller = new module.controller(instance, module.route) as FastController
                         const methods = controller.methods
 
-                        if( methods.includes('GET') 
-                            && methods.includes('POST') || methods.includes('PUT') || methods.includes('DELETE') || methods.includes('PATCH')
-                            && controller.schema.querystring && controller.schema.body ) {
-                            
-                            const getController = new module.controller(instance, module.route) as FastController
-                            delete getController.schema.body
-                            getController.method = getController.methods.filter(method => !['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) )
+                        /**
+                         * Assuming if the controller defines schemas for both querystring and body
+                         * then it will also define multiple methods for handling requests
+                         * 
+                         * We will define a controller for each method defined in the methods array
+                         */
+                        if (controller.schema && controller.schema.querystring && controller.schema.body && methods.length > 1) {
 
-                            _scope.route(getController as RouteOptions)
+                            controller.methods.forEach(method => {
 
-                            const bodyController = new module.controller(instance, module.route) as FastController
-                            delete bodyController.schema.querystring
-                            bodyController.method = bodyController.methods.filter(method => method !== 'GET')
+                                // Create a new controller instance for this method    
+                                const cont = new module.controller(instance, module.route) as FastController
 
-                            _scope.route(bodyController as RouteOptions)
+                                // Remove all but this method from the RouteOptions method array
+                                cont.method = method
+
+                                // Determine if the controller defines a response schema
+                                if (cont.schema.response) {
+
+                                    // If so, then determine if the response schema defines this method
+                                    for (let key of Object.keys(cont.schema.response)) {
+
+                                        if (key.toLowerCase() === method.toLowerCase()) {
+
+                                            // If so, then set the response schema to this methods schema
+                                            cont.schema.response = (cont.schema.response as { [key: string]: {} })[key]
+                                            break
+                                        }
+
+                                        // Determine if this key is a number and delete if not
+                                        else if (!Number.isInteger(Number(key))) {
+
+                                            delete (cont.schema.response as { [key: string]: {} })[key]
+                                        }
+                                    }
+                                }
+
+                                // Special case for the get method
+                                if (method === 'GET') {
+
+                                    // Remove the schema.body from the get controller it is not needed
+                                    if (cont.schema.body) {
+                                        delete cont.schema.body
+                                    }
+                                }
+
+                                else {
+
+                                    // Remove the schema.querystring from the body controller it is not needed
+                                    if (cont.schema.querystring) {
+                                        delete cont.schema.querystring
+                                    }
+
+                                    // Determine if the controller defines a response schema
+                                    if (cont.schema.body) {
+
+                                        // If so, then determine if the response schema defines this method
+                                        for (let key of Object.keys(cont.schema.body)) {
+
+                                            if (key.toLowerCase() === method.toLowerCase()) {
+
+                                                // If so, then set the response schema to this methods schema
+                                                cont.schema.body = (cont.schema.body as { [key: string]: {} })[key]
+                                                break
+                                            }
+                                        }
+                                    }
+                                }
+
+                                _scope.route(cont as RouteOptions)
+                            })
                         }
+
+                        // Add the single controller to the scope
                         else {
 
                             _scope.route(controller as RouteOptions)

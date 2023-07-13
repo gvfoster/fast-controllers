@@ -1,9 +1,18 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest, FastifySchema } from 'fastify'
 
-import FastControllerError_MethodHandlerNotDefined from './errors/FastControllerError_MethodHandlerNotDefined'
 import { SocketStream } from '@fastify/websocket'
-import FastControllerError from './errors/FastControllerError'
 
+import FastControllerError_MethodHandlerNotDefined from './errors/FastControllerError_MethodHandlerNotDefined'
+
+declare module 'fastify' { // This is the module augmentation.
+    interface FastifySchema { // This is the interface you're augmenting.
+        get?: {},
+        post?: {},
+        put?: {},
+        delete?: {},
+        patch?: {}
+    }
+}
 
 type methodHandlers = (request: FastifyRequest, reply: FastifyReply) =>  void | Promise<unknown> | string
 
