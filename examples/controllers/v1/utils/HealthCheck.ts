@@ -18,6 +18,6 @@ export default class Hello extends FastController {
 
         // This will return nothing due to json schema defined above 
         // delete the schema override to see result
-        return { data: 'feeling just fine' }
+        return { hi: 'there', hey: 'hee' }
     }
 }

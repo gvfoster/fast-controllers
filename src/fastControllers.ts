@@ -46,28 +46,22 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
 
     new Promise<Array<string>>((resolve, reject) => {
 
-        function scan(path: string): Array<string> {
+        function scan(contPath: string): Array<string> {
 
             const paths = new Array<string>()
-            const dir = fs.opendirSync(path)
-
-            let entry = dir.readSync()
-            while (entry) {
+            fs.readdirSync(contPath, { withFileTypes: true }).forEach( entry => {
 
                 if (entry.isDirectory() && !entry.name.startsWith('.')) {
-                    paths.push(...scan(dir.path + '/' + entry.name))
+                    paths.push(...scan( path.join(contPath, entry.name) ) )
                 }
 
                 else if (entry.isFile() && !entry.name.startsWith('index', 0)) {
 
-                    let modulePath = (dir.path + '/' + entry.name)
-                    paths.push(modulePath.substring(0, modulePath.lastIndexOf('.')))
+                    let modulePath = path.join(contPath, entry.name)
+                    paths.push( modulePath.substring(0, modulePath.lastIndexOf('.')) )
                 }
+            })
 
-                entry = dir.readSync()
-            }
-
-            dir.close()
             return paths
         }
 
@@ -75,7 +69,7 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
     })
 
         // Then import each module and return an array of modules with routes  
-        .then(paths => {
+        .then( paths => {
 
             return Promise.all(paths.map(path => {
                 return import(path).then(module => {
@@ -88,7 +82,7 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
         })
 
         // Split the modules array into an array of FastControllerModules indexed by scope 
-        .then(modules => {
+        .then( modules => {
 
             const scopedModules: { [index: string]: Array<FastControllerModule> } = {}
 
