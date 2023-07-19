@@ -75,7 +75,7 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
                 return import(path).then(module => {
                     return {
                         controller: module.default,
-                        route: path.substring(opts.path.length).toLowerCase()
+                        route: path.substring(opts.path.length).toLowerCase().replace(/\\/g, '/')
                     } as FastControllerModule
                 })
             }))

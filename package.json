@@ -1,6 +1,6 @@
 {
     "name": "fast-controllers",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "description": "class based controllers for Fastify",
     "author": { "name": "Greg Foster (gvfoster)" },
     "main": "./index.js",
