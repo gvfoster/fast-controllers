@@ -123,6 +123,12 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
                                 // Remove all but this method from the RouteOptions method array
                                 cont.method = method
 
+                                // Determine if this controller defines any params
+                                if (cont.params) {
+                                    
+                                    cont.url = path.join(cont.url, ...cont.params.map(param => `:${param}`))
+                                }
+
                                 // Determine if the controller defines a response schema
                                 if (cont.schema.response) {
 

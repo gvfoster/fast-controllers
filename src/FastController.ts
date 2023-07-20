@@ -4,8 +4,8 @@ import { SocketStream } from '@fastify/websocket'
 
 import FastControllerError_MethodHandlerNotDefined from './errors/FastControllerError_MethodHandlerNotDefined'
 
-declare module 'fastify' { // This is the module augmentation.
-    interface FastifySchema { // This is the interface you're augmenting.
+declare module 'fastify' {
+    interface FastifySchema { 
         get?: {},
         post?: {},
         put?: {},
@@ -14,59 +14,119 @@ declare module 'fastify' { // This is the module augmentation.
     }
 }
 
+/**
+ * methodHandlers type
+ */
 type methodHandlers = (request: FastifyRequest, reply: FastifyReply) =>  void | Promise<unknown> | string
 
+/**
+ * Supported http methods
+ */
 const METHODS = ['delete', 'get', 'head', 'patch', 'post', 'put', 'options', 'search', 'trace', 'propfind', 'proppatch', 'mkcol', 'copy', 'move', 'lock', 'unlock']
 
 /**
- * 
  * class FastController is the base class for all controllers 
- * implementing the `fastController` plugin
+ * implementing the `FastController` Fastify plugin.
+ * 
+ * This class attempts to adorn the Fastify Route Options object 
+ * with some object orient functionality, and implements a structured route paradigm
+ * that is defined by the controllers folder structure.   
  */
 class FastController {
 
-    /**
-     * Defines the shared scope for all derived controller classes
-     */
-    static scope = 'unsecured'
+
+    /**************** Fastify Route 'Options' /****************
 
     /**
-     * The Fastify instance provided to the constructor
-     */
-    private _instance: FastifyInstance 
-
-    /**
-     * The relative path that this controller will handle  
+     * The relative path that this controller will handle.  
+     * 
+     * This is set by plugin initialization and should not be changed.
      */
     public url = '' 
 
     /**
-     * The FastifySchema
+     * The Json Schema FastifySchema.
+     * 
+     * This property is augmented by the FastController plugin to support schemas per http method.
      */
     public schema: FastifySchema = {}
 
     /**
      * The Fastify Route Options websocket flag
+     * 
+     * The use of this property is not directly required. The FastController class will 
+     * assume websocket support is desired if the webSocketHandler method is defined, 
+     * and then set this property to true.
      */ 
     public websocket: boolean = false
 
     /**
-     * The http methods that this controller will respond to
+     * The Fastify http method property that this controller will respond to
      */
     public method: Array<string> | string
 
     /**
-     * Getter returns the array version of method property
+     * The Fastify Route Option handle. 
+     * Main handler for all requests
+     * 
+     * @param reqConn - The FastifyRequest or SocketStream
+     * @param re - The FastifyReply or FastifyRequest
+     * @returns - void | Promise<unknown> | string | object 
      */
-    public get methods() {
-        return Array.isArray(this.method) ? this.method : [this.method]
+    public handler = (requestOrConn: FastifyRequest | SocketStream, replyOrRequest: FastifyReply | FastifyRequest): void | Promise<unknown> | string | object => {
+    
+        // Determine if this is a websocket connection and if so, call the websocket handler
+        if(requestOrConn.socket !== undefined && typeof this.webSocketHandler === 'function') {
+        
+            return this.webSocketHandler(requestOrConn as SocketStream, replyOrRequest as FastifyRequest)
+        }
+
+        const request = requestOrConn as FastifyRequest
+        const reply = replyOrRequest as FastifyReply
+
+        if( typeof this[request.method.toLowerCase() as keyof FastController] === 'function') {
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            return (this as unknown as {[key:string]: methodHandlers})[request.method.toLocaleLowerCase()]!(request, reply)
+        }
+
+        else if(typeof this.handle === 'function') {
+            return this.handle(request, reply)
+        }
     }
+
+
+    /**************** End Fastify Route 'Options' /****************
+
+
+
+    /**************** FastController Members /****************
+
+
+    /**
+     * Defines the shared scope for all derived controller classes, 
+     * and is used to group related controllers together in a common scope.
+     * 
+     * The default scope is 'unsecured'
+     */
+    static scope = 'unsecured'
+
+    /**
+     * The Fastify Instance provided to the constructor during fastController initialization.
+     * 
+     * Because the default route object context mapping to the Fastify Instance is broken 
+     * on all of the Fastify Route Option methods, this property is provided to allow access to the 
+     * Instance. 
+     * 
+     * The Object context had to be broken to support object oriented goals. 
+     */
+    private _instance: FastifyInstance 
 
     /**
      * FastController constructor
      * 
-     * @param i - The FastifyInstance
-     * @param route - The relative path that this controller will handle
+     * @param i - The FastifyInstance passed by the FastController plugin
+     * @param route - The relative path that this controller will handle. resolved and provided by the FastController plugin
      */
     constructor( i: FastifyInstance, route: string ) {
 
@@ -104,6 +164,13 @@ class FastController {
     protected init() {}
 
     /**
+     * Stores the route params for this controller.
+     * 
+     * This value is used by the FastController plugin to append any route param segments to the url.
+     */
+    public params: Array<string> | null = null
+
+    /**
      * The FastifyInstance setter
      */
     set instance(i:FastifyInstance) {
@@ -118,33 +185,10 @@ class FastController {
     }
 
     /**
-     * The Fastify Route Option handle 
-     * Main handler for all requests
-     * 
-     * @param reqConn - The FastifyRequest or SocketStream
-     * @param re - The FastifyReply or FastifyRequest
-     * @returns - void | Promise<unknown> | string | object 
+     * Getter returns the array version of method property
      */
-    public handler = (requestOrConn: FastifyRequest | SocketStream, replyOrRequest: FastifyReply | FastifyRequest): void | Promise<unknown> | string | object => {
-    
-        // Determine if this is a websocket connection and if so, call the websocket handler
-        if(requestOrConn.socket !== undefined && typeof this.webSocketHandler === 'function') {
-        
-            return this.webSocketHandler(requestOrConn as SocketStream, replyOrRequest as FastifyRequest)
-        }
-
-        const request = requestOrConn as FastifyRequest
-        const reply = replyOrRequest as FastifyReply
-
-        if( typeof this[request.method.toLowerCase() as keyof FastController] === 'function') {
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            return (this as unknown as {[key:string]: methodHandlers})[request.method.toLocaleLowerCase()]!(request, reply)
-        }
-
-        else if(typeof this.handle === 'function') {
-            return this.handle(request, reply)
-        }
+    public get methods() {
+        return Array.isArray(this.method) ? this.method : [this.method]
     }
 
     /**
@@ -164,7 +208,6 @@ class FastController {
     }
 
     /**
-     * FastController plugin hook for handling websocket connections
      * override this method to handle the underlying preValidation hook from Fastify
      * 
      * @param request 
@@ -176,7 +219,6 @@ class FastController {
     public delete?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
     
     public get?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-    //public get?(connection: SocketStream, req: FastifyRequest): void | Promise<unknown> | string | object
 
     public head?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
