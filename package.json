@@ -1,6 +1,6 @@
 {
     "name": "fast-controllers",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "description": "class based controllers, and implied folder route mapping for Fastify",
     "author": { "name": "Greg Foster (gvfoster)" },
     "main": "./index.js",

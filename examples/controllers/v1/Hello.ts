@@ -56,10 +56,13 @@ export default class Hello extends FastController {
 
         params: {
 
-            type: 'object',
-            properties: {
+            get: {
 
-                name: { type: 'string' }
+                type: 'object',
+                properties: {
+
+                    name: { type: 'string' }
+                }
             }
         }
     } 
