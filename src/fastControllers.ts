@@ -113,9 +113,9 @@ async function fastControllers(instance: FastifyInstance, options: FastifyPlugin
                          * 
                          * We will define a controller for each method defined in the methods array
                          */
-                        if (controller.schema && controller.schema.querystring && controller.schema.body && methods.length > 1) {
+                        if (controller.schema && controller.schema.body && methods.length > 1) {
 
-                            controller.methods.forEach(method => {
+                            controller.methods.forEach( method => {
 
                                 // Create a new controller instance for this method    
                                 const cont = new module.controller(instance, module.route) as FastController
