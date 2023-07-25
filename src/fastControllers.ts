@@ -6,8 +6,6 @@ import type { FastifyInstance, FastifyPluginOptions, RouteOptions } from 'fastif
 import type FastController from './FastController'
 import FastControllerError_InvalidControllerPath from './errors/FastControllerError_InvalidControllerPath'
 
-
-
 type FastControllerModule = { controller: typeof FastController, route: string }
 
 type FastControllerOptions = {

@@ -14,7 +14,6 @@ export default class Hello extends FastController {
                     hello: { type: 'string' }
                 }
             },
-
             post: {
 
                 type: 'object',
