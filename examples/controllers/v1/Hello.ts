@@ -1,4 +1,4 @@
-import { FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { FastController } from "../../../src"
 
 export default class Hello extends FastController {
@@ -9,9 +9,9 @@ export default class Hello extends FastController {
 
             put: {
                 type: 'object',
-                required: ['hello'],
+                required: ['hi'],
                 properties: {
-                    hello: { type: 'string' }
+                    hi: { type: 'string' }
                 }
             },
             post: {
@@ -23,32 +23,39 @@ export default class Hello extends FastController {
             }
         },
 
-        // querystring: {
-        //     type: 'object',
-        //     properties: {
-        //         hello: { type: 'string' }
-        //     }
-        // },
+        querystring: {
+
+            get: {
+                
+                type: 'object',
+                properties: {
+                    hello: { type: 'string' }
+                }
+            }
+        },
 
         response: {
 
-            // get: {
-            //     200: {
-            //         type: 'object',
-            //         required: ['hi', 'hey'],
-            //         properties: {
-            //             hi: { type: 'string' },
-            //             hey: { type: 'string' }
-            //         }
-            //     }
-            // },
+            get: {
+                200: {
+                    type: 'object',
+                    required: ['hi', 'hey'],
+                    properties: {
+                        hi: { type: 'string' },
+                        hey: { type: 'string' }
+                    }
+                }
+            },
 
+            // Use the same schema for all of the remaining methods
+            // only works for status code keyed response schemas
             200: {
+
                 type: 'object',
-                required: ['hi', 'hey'],
+                required: ['Hello', 'Welcome'],
                 properties: {
-                    hi: { type: 'string' },
-                    hey: { type: 'string' }
+                    Hello: { type: 'string' },
+                    Welcome: { type: 'string' }
                 }
             } 
         },
@@ -56,7 +63,6 @@ export default class Hello extends FastController {
         params: {
 
             get: {
-
                 type: 'object',
                 properties: {
 
@@ -66,23 +72,31 @@ export default class Hello extends FastController {
         }
     } 
 
-    public override params = ['first', 'last']
-
-    public override get(request: FastifyRequest<{Params: {first?: string, last?: string}, Querystring: {hello: string}}>) {
-
-        const name = request.params.first + ' ' + request.params.last
-        const hello = request.query.hello
-
-        return { hi: `there ${name}` , hey: `yo ${hello}` }
+    public override params = {
+        post: '/:first/:last',
+        put: ['test1', 'test2'],
+        get: '*'    
     }
 
-    public override put () {
+    public override get(request: FastifyRequest<{Querystring: {hello: string }, Params: { '*': string } }>, response: FastifyReply) {
+
+        const first = request.params['*']
+        const { hello } = request.query
+
+        return { hi: `${first}`, hey: `${hello}` }
+    }
+
+    public override put (request: FastifyRequest<{Body: { hi: string }, Params: { test1: string, test2: string }}>, response: FastifyReply) {
         
-        return { hi: 'there', hey: 'yo' }
+        const { hi } = request.body
+
+        return { Hello: hi, Welcome: 'there' }
     }
 
-    public override post () {
-            
-        return { hi: 'there', hey: 'yo' }
+    public override post (request: FastifyRequest<{Params: {first:string, last:string}, Body:{ hello: string } }>, response: FastifyReply) {
+
+        const { first, last } = request.params
+
+        return { Hello: `${first} ${last}`, Welcome: request.body.hello }
     }
 }

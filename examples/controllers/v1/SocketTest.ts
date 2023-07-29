@@ -7,6 +7,7 @@ import SimpleSecure from '../.auth/SimpleSecure'
 export default class SocketTest extends SimpleSecure {
 
     public override schema: FastifySchema = {
+        
         socket: {
             in: {
                 type: 'object',

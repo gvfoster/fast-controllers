@@ -1,6 +1,6 @@
 {
     "name": "fast-controllers",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "description": "class based controllers, and implied folder route mapping for Fastify",
     "author": { "name": "Greg Foster (gvfoster)" },
     "main": "./index.js",
@@ -16,6 +16,9 @@
     "license": "ISC",
     "bugs": { "url": "https://github.com/gvfoster/fast-controllers/issues" },
     "homepage": "https://github.com/gvfoster/fast-controllers#readme",
+    "scripts": {
+        "build-debug": "echo Building...."
+    },
     "dependencies": { 
         "fastify": "^4.9.2",
         "@fastify/websocket": "^8.1.0"

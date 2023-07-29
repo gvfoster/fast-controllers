@@ -1,22 +1,27 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest, FastifySchema } from 'fastify'
+import type { FastifyInstance, FastifyRequest, FastifyReply, 
+    FastifySchema, RouteOptions, HTTPMethods } from 'fastify'
 
 import { SocketStream } from '@fastify/websocket'
 
 import FastControllerError_MethodHandlerNotDefined from './errors/FastControllerError_MethodHandlerNotDefined'
 import { ValidationFunction } from 'fastify/types/request'
-import FastControllerError from './errors/FastControllerError'
+
+
+export type MethodSpecific = { [key in Lowercase<HTTPMethods>]?: unknown }
+
 
 declare module 'fastify' {
+
     interface FastifySchema {
         socket?: {
             in?: {},
             out?: {}
         },
-        get?: {},
-        post?: {},
-        put?: {},
-        delete?: {},
-        patch?: {}
+        body?: unknown | MethodSpecific;
+        querystring?: unknown | MethodSpecific;
+        params?: unknown | MethodSpecific;
+        headers?: unknown | MethodSpecific;
+        response?: unknown | MethodSpecific;
     }
 }
 
@@ -29,7 +34,7 @@ type methodHandlers = (request: FastifyRequest, reply: FastifyReply) => void | P
 /**
  * Supported http methods
  */
-const METHODS = ['delete', 'get', 'head', 'patch', 'post', 'put', 'options', 'search', 'trace', 'propfind', 'proppatch', 'mkcol', 'copy', 'move', 'lock', 'unlock']
+export const METHODS: Array<Lowercase<HTTPMethods>> = ['delete', 'get', 'head', 'patch', 'post', 'put', 'options', 'search', 'trace', 'propfind', 'proppatch', 'mkcol', 'copy', 'move', 'lock', 'unlock']
 
 /**
  * class FastController is the base class for all controllers 
@@ -39,24 +44,24 @@ const METHODS = ['delete', 'get', 'head', 'patch', 'post', 'put', 'options', 'se
  * with some object orient functionality, and implements a structured route paradigm
  * that is defined by the controllers folder structure.   
  */
-class FastController {
+export default class FastController implements RouteOptions {
 
 
-    /**************** Fastify Route 'Options' /****************
+    /**************** Fastify Route 'Options' ****************/
 
     /**
      * The relative path that this controller will handle.  
      * 
      * This is set by plugin initialization and should not be changed.
      */
-    public url = ''
+    public url: string = ''
 
     /**
      * The Json Schema FastifySchema.
      * 
      * This property is augmented by the FastController plugin to support schemas per http method.
      */
-    public schema: FastifySchema = {}
+    public schema?: FastifySchema 
 
     /**
      * The Fastify Route Options websocket flag
@@ -70,7 +75,7 @@ class FastController {
     /**
      * The Fastify http method property that this controller will respond to
      */
-    public method: Array<string> | string
+    public method: Array<Uppercase<HTTPMethods>> | Uppercase<HTTPMethods>
 
     /**
      * The Fastify Route Option handle. 
@@ -83,13 +88,15 @@ class FastController {
     public handler = (requestOrConn: FastifyRequest | SocketStream, replyOrRequest: FastifyReply | FastifyRequest): void | Promise<unknown> | string | object => {
 
         // Determine if this is a websocket connection and if so, call the websocket handler
-        if (requestOrConn.socket !== undefined) {
+        if ( this.websocket ) {
 
             return this.webSocketHandler(requestOrConn as SocketStream, replyOrRequest as FastifyRequest)
         }
 
         const request = requestOrConn as FastifyRequest
         const reply = replyOrRequest as FastifyReply
+
+        console.log(' Handler Method ' ,request.method.toLowerCase(), typeof this[request.method.toLowerCase() as keyof FastController] )
 
         if (typeof this[request.method.toLowerCase() as keyof FastController] === 'function') {
 
@@ -130,6 +137,13 @@ class FastController {
     private _instance: FastifyInstance
 
     /**
+     * Stores the route params for this controller.
+     * 
+     * This value is used by the FastController plugin to append any route param segments to the url.
+     */
+    public params?: { [key in Lowercase<HTTPMethods>]?: Array<string> | string } | Array<string> | string
+
+    /**
      * FastController constructor
      * 
      * @param i - The FastifyInstance passed by the FastController plugin
@@ -150,11 +164,11 @@ class FastController {
         }
         else {
 
-            const methods = new Array<string>()
+            const methods = new Array<Uppercase<HTTPMethods>>()
 
             METHODS.forEach(method => {
                 if (typeof this[method as keyof FastController] === 'function') {
-                    methods.push(method.toUpperCase())
+                    methods.push(method.toUpperCase() as Uppercase<HTTPMethods>)
                 }
             })
 
@@ -174,14 +188,9 @@ class FastController {
     protected init() { }
 
     /**
-     * Stores the route params for this controller.
-     * 
-     * This value is used by the FastController plugin to append any route param segments to the url.
-     */
-    public params: Array<string> | null = null
-
-    /**
      * The FastifyInstance setter
+     * 
+     * @deprecated - This setter is not used and will be removed in a future release
      */
     set instance(i: FastifyInstance) {
         this._instance = i
@@ -197,7 +206,7 @@ class FastController {
     /**
      * Getter returns the array version of method property
      */
-    public get methods() {
+    public get methods(): Array<Uppercase<HTTPMethods>> {
         return Array.isArray(this.method) ? this.method : [this.method]
     }
 
@@ -261,7 +270,9 @@ class FastController {
     public handle?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
 
+
     /**************** Web Socket *******************/
+
 
 
     /**
@@ -279,11 +290,11 @@ class FastController {
      */
     private compileSocketSchemas() {
 
-        console.log('compileSocketSchemas: ', this.schema.socket)
+        console.log('compileSocketSchemas: ', this.schema?.socket)
 
         return import('ajv').then(Ajv => {
 
-            if ((!this.socketSchemaValidatorIn && !this.socketSchemaValidatorOut) && this.schema.socket && (this.schema.socket.in || this.schema.socket.out)) {
+            if ((!this.socketSchemaValidatorIn && !this.socketSchemaValidatorOut) && this.schema?.socket && (this.schema.socket.in || this.schema.socket.out)) {
 
                 const ajv = new Ajv.default({
                     allErrors: true,
@@ -293,13 +304,13 @@ class FastController {
                     allowUnionTypes: true
                 })
 
-                if (this.schema.socket?.in) {
+                if (this.schema?.socket?.in) {
 
                     console.log('compiling socket.in schema: ', this.schema.socket.in)
                     this.socketSchemaValidatorIn = ajv.compile(this.schema.socket.in, true)
                 }
 
-                if (this.schema.socket?.out) {
+                if (this.schema?.socket?.out) {
 
                     console.log('compiling socket.out schema: ', this.schema.socket.out)
                     this.socketSchemaValidatorOut = ajv.compile(this.schema.socket.out!, true)
@@ -494,7 +505,7 @@ class FastController {
 
             let mess: string = message
 
-            if (this.schema.socket?.out && this.socketSchemaValidatorOut !== undefined) {
+            if (this.schema?.socket?.out && this.socketSchemaValidatorOut !== undefined) {
 
                 const result = this.socketSchemaValidatorOut(mess)
 
@@ -567,4 +578,3 @@ class FastController {
     }
 }
 
-export default FastController
