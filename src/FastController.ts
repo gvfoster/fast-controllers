@@ -364,6 +364,10 @@ export default class FastController implements RouteOptions {
 
                     connection.socket.on('close', (code: number, reason: string, connection: SocketStream) => {
 
+                        if(this.sockets !== null && this.sockets.has(key)) {
+                            this.sockets.delete(key)
+                        }
+                        
                         return this.onSocketDisconnected!(connection, key, code, reason)
                     })
                 }
