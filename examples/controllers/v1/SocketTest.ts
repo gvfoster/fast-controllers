@@ -1,12 +1,12 @@
-import { SocketStream } from '@fastify/websocket'
 import { FastifyRequest, FastifySchema } from 'fastify'
+import { SocketStream } from '@fastify/websocket'
 
 import SimpleSecure from '../.auth/SimpleSecure'
 
 
 export default class SocketTest extends SimpleSecure {
 
-    public override schema: FastifySchema = {
+    public override schema = {
         
         socket: {
             in: {
@@ -27,12 +27,24 @@ export default class SocketTest extends SimpleSecure {
         }
     }
 
-    public override onSocketConnected(connection: SocketStream, request: FastifyRequest) {
-    
+    public override onSocketConnected( connection: SocketStream, request: FastifyRequest ): any {
+        
         console.log( 'socket connected, using key: ', request.id )
-
         return request.id
     }
+
+
+    // public onSocketConnected(connection: SocketStream, request: FastifyRequest) {
+    
+    //     console.log( 'socket connected, using key: ', request.id )
+    //     return request.id
+    // }
+
+    public override onSocketDisconnected( key: any ) {
+    
+        console.log( 'socket disconnected, using key: ', key )
+    }
+
 
     public override onSocketMessageReceived( message: number, key: any ) {
     

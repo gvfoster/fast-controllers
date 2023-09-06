@@ -340,10 +340,7 @@ export default class FastController implements RouteOptions {
                 const key = this.onSocketConnected!(connection, request)
 
                 // If the key is not defined then throw an error
-                if (!key) {
-
-                    throw new Error('onSocketConnected: key is undefined')
-                }
+                if (!key) throw new Error('onSocketConnected: key is undefined')
 
                 // If the sockets property is not defined then create it
                 if (this.sockets === null) {
@@ -359,6 +356,15 @@ export default class FastController implements RouteOptions {
                     connection.socket.on('message', (message: string, connection: SocketStream) => {
 
                         return this.onValidateIncomingSocketMessage(message, key)
+                    })
+                }
+
+                // If the onSocketClose hook is defined then add a close handler to the socket
+                if (this.onSocketDisconnected !== undefined && typeof this.onSocketDisconnected === 'function') {
+
+                    connection.socket.on('close', (code: number, reason: string, connection: SocketStream) => {
+
+                        return this.onSocketDisconnected!(connection, key, code, reason)
                     })
                 }
 
@@ -458,6 +464,18 @@ export default class FastController implements RouteOptions {
      *  
      */
     public onSocketConnected?(connection: SocketStream, request: FastifyRequest): any
+
+    /**
+     * onSocketDisconnected Hook is called when a websocket connection is closed
+     * 
+     * @param code - The websocket close code
+     * @param reason - The websocket close reason
+     * @param connection - The SocketStream
+     * @param key - The key value returned by the onSocketConnected hook
+     * 
+     * @returns - void
+     */
+    public onSocketDisconnected?(connection: SocketStream, key: any, code: number, reason: string ): void
 
     /**
      * onSocketMessageReceived Hook is called when a websocket message is received

@@ -4,7 +4,7 @@ import FastControllerError from '../../../src/errors/FastControllerError'
 
 export default class SimpleSecure extends SecureFastController {
 
-    public override onPreValidation(request: FastifyRequest, reply: FastifyReply, done: (err?:Error)=>void) {
+    public override onPreValidation(request: FastifyRequest, _reply: FastifyReply, done: (err?:Error)=>void) {
     
         console.log('authorization header found', request.headers.authorization)
         if(request.headers.authorization !== 'Bearer 1234567890') {

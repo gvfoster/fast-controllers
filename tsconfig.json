@@ -17,15 +17,11 @@
       "forceConsistentCasingInFileNames": true,
       "allowUnusedLabels": true,
       "allowUnreachableCode": false,
-      "exactOptionalPropertyTypes": true,
       "noFallthroughCasesInSwitch": true,
       "noImplicitOverride": true,
       "noImplicitReturns": true,
       "noPropertyAccessFromIndexSignature": true,
-      "noUncheckedIndexedAccess": true,
-      "noUnusedLocals": false,
-      "noUnusedParameters": false,
-      "checkJs": true
+      "noUncheckedIndexedAccess": true
     },
     "exclude": [
         "node_modules",
