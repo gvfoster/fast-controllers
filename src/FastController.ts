@@ -336,9 +336,9 @@ export default class FastController implements RouteOptions {
             // Attempt to compile any socket schemas
             return this.compileSocketSchemas().then(() => {
 
-                // Call the onSocketConnected hook and get the desired key for this connection
-                const key = this.onSocketConnected!(connection, request)
-
+                // Get the key for this connection by calling onResolveSocketConnectionKey
+                const key = this.onResolveSocketConnectionKey(connection, request)
+                
                 // If the key is not defined then throw an error
                 if (!key) throw new Error('onSocketConnected: key is undefined')
 
@@ -367,12 +367,13 @@ export default class FastController implements RouteOptions {
                         if(this.sockets !== null && this.sockets.has(key)) {
                             this.sockets.delete(key)
                         }
-                        
+
                         return this.onSocketDisconnected!(connection, key, code, reason)
                     })
                 }
 
-                return
+                // Call the user defined onSocketConnected hook
+                return this.onSocketConnected!(connection, request)
             })
         }
     }
@@ -458,16 +459,33 @@ export default class FastController implements RouteOptions {
     }
 
     /**
+     * Creates a socket map key for the connection, and request.
+     * This key is used to reference the connection in the sockets map.
+     * 
+     * The default implementation returns the FastifyRequest id property.
+     * 
+     * @param connection - The SocketStream
+     * @param request - The FastifyRequest
+     * 
+     * @returns - any WebSocket Connection index value. This is the value that will be used to reference this connection. 
+     */
+    public onResolveSocketConnectionKey(connection: SocketStream, request: FastifyRequest): any {
+
+        return request.id
+    }
+
+
+    /**
      * onSocketConnected Hook is called when a websocket connection is established
      * 
      * @param connection - The SocketStream
      * @param request - The FastifyRequest
      * 
-     * @returns - any WebSocket Connection index value. This is the value that will be used to reference this connection.
+     * @returns - void.
      *
      *  
      */
-    public onSocketConnected?(connection: SocketStream, request: FastifyRequest): any
+    public onSocketConnected?(connection: SocketStream, request: FastifyRequest): void
 
     /**
      * onSocketDisconnected Hook is called when a websocket connection is closed
