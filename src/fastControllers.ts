@@ -243,6 +243,10 @@ function prepareController(controller: FastController, method: HTTPMethods): Rou
                     delete (controller.schema.body as { [key in Lowercase<HTTPMethods>]: {} })[method]
                 }
             })
+
+            if( Object.keys(controller.schema.body).length === 0 ) {
+                delete controller.schema.body
+            }
         }
     }
 
