@@ -227,9 +227,23 @@ function prepareController(controller: FastController, method: HTTPMethods): Rou
     /**
      * Determine if the controller defines a body schema
      */ 
-    if ( controller.schema?.body && controller.schema.body.hasOwnProperty(lMethod) ) {
+    if(controller.schema?.body) {
 
-        controller.schema.body = (controller.schema.body as { [key in Lowercase<HTTPMethods>]: {} })[lMethod]
+        if(controller.schema.body.hasOwnProperty(lMethod) ) {
+            
+            controller.schema.body = (controller.schema.body as { [key in Lowercase<HTTPMethods>]: {} })[lMethod]
+        }
+
+        else {
+                
+            METHODS.forEach( method => {
+    
+                if( controller.schema?.body && controller.schema?.body.hasOwnProperty(method.toLowerCase()) ) {
+    
+                    delete (controller.schema.body as { [key in Lowercase<HTTPMethods>]: {} })[method]
+                }
+            })
+        }
     }
 
     return controller as RouteOptions

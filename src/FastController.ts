@@ -474,7 +474,6 @@ export default class FastController implements RouteOptions {
         return request.id
     }
 
-
     /**
      * onSocketConnected Hook is called when a websocket connection is established
      * 

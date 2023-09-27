@@ -12,5 +12,8 @@
         "propfind",
         "proppatch",
         "testsocket"
+    ],
+    "github-actions.workflows.pinned.workflows": [
+        ".github/workflows/deploy.yml"
     ]
 }
