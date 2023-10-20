@@ -96,8 +96,6 @@ export default class FastController implements RouteOptions {
         const request = requestOrConn as FastifyRequest
         const reply = replyOrRequest as FastifyReply
 
-        console.log(' Handler Method ' ,request.method.toLowerCase(), typeof this[request.method.toLowerCase() as keyof FastController] )
-
         if (typeof this[request.method.toLowerCase() as keyof FastController] === 'function') {
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -290,8 +288,6 @@ export default class FastController implements RouteOptions {
      */
     private compileSocketSchemas() {
 
-        console.log('compileSocketSchemas: ', this.schema?.socket)
-
         return import('ajv').then(Ajv => {
 
             if ((!this.socketSchemaValidatorIn && !this.socketSchemaValidatorOut) && this.schema?.socket && (this.schema.socket.in || this.schema.socket.out)) {
@@ -306,13 +302,11 @@ export default class FastController implements RouteOptions {
 
                 if (this.schema?.socket?.in) {
 
-                    console.log('compiling socket.in schema: ', this.schema.socket.in)
                     this.socketSchemaValidatorIn = ajv.compile(this.schema.socket.in, true)
                 }
 
                 if (this.schema?.socket?.out) {
 
-                    console.log('compiling socket.out schema: ', this.schema.socket.out)
                     this.socketSchemaValidatorOut = ajv.compile(this.schema.socket.out!, true)
                 }
             }
@@ -401,12 +395,10 @@ export default class FastController implements RouteOptions {
 
                     message = result
                 }
-
-                console.log('onValidateIncomingSocketMessage: parsed message: ', message)
             }
             catch (e) {
 
-                console.log('onValidateIncomingSocketMessage: error parsing message: ', e)
+                console.error(e)
             }
         }
 
@@ -414,12 +406,10 @@ export default class FastController implements RouteOptions {
         if (this.socketSchemaValidatorIn !== undefined) {
 
             const result = this.socketSchemaValidatorIn(message)
-            console.log('onValidateIncomingSocketMessage: result: ', result)
 
             if (!result) {
 
                 const errors = this.socketSchemaValidatorIn.errors
-                console.log('onValidateIncomingSocketMessage: errors: ', errors)
 
                 const error = {
                     error: {

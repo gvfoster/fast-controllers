@@ -29,7 +29,6 @@ export default class SocketTest extends SimpleSecure {
 
     public override onSocketConnected( connection: SocketStream, request: FastifyRequest ): any {
         
-        console.log( 'socket connected, using key: ', request.id )
         return request.id
     }
 
