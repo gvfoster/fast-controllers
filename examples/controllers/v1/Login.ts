@@ -9,7 +9,7 @@ const tokenExpiration = '2h'
 
 export default class Login extends FastController {
 
-    override post(request: FastifyRequest<{ Body: {email:string, password:string} }>, reply: FastifyReply) {
+    override post(_request: FastifyRequest<{ Body: {email:string, password:string} }>, _reply: FastifyReply) {
 
         const payload: JwtPayload = { sub: 'ausersid' }
         const token = sign(payload, tokenKey, { expiresIn: tokenExpiration })

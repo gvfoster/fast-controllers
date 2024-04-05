@@ -7,7 +7,7 @@ class SecureFastController extends FastController {
 
     static override scope = 'secured'
 
-    public override onPreValidation(request: FastifyRequest, reply: FastifyReply, done: (err?:Error) => void) {
+    public override onPreValidation(_request: FastifyRequest, _reply: FastifyReply, done: (err?:Error) => void) {
         
         console.log('preValidation')
         done()

@@ -78,7 +78,7 @@ export default class Hello extends FastController {
         get: ['param1']    
     }
 
-    public override get(request: FastifyRequest<{Querystring: {hello: string }, Params: { 'param1': string } }>, response: FastifyReply) {
+    public override get(request: FastifyRequest<{Querystring: {hello: string }, Params: { 'param1': string } }>, _reply: FastifyReply) {
 
         const param1 = request.params.param1
         const { hello } = request.query
@@ -86,14 +86,14 @@ export default class Hello extends FastController {
         return { hi: `${param1}`, hey: `${hello}` }
     }
 
-    public override put (request: FastifyRequest<{Body: { hi: string }, Params: { test1: string, test2: string }}>, response: FastifyReply) {
+    public override put (request: FastifyRequest<{Body: { hi: string }, Params: { test1: string, test2: string }}>, _reply: FastifyReply) {
         
         const { hi } = request.body
 
         return { Hello: hi, Welcome: 'there' }
     }
 
-    public override post (request: FastifyRequest<{Params: {first:string, last:string}, Body:{ hello: string } }>, response: FastifyReply) {
+    public override post (request: FastifyRequest<{Params: {first:string, last:string}, Body:{ hello: string } }>, _reply: FastifyReply) {
 
         const { first, last } = request.params
 

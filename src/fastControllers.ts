@@ -5,14 +5,12 @@ import type { FastifyInstance, FastifyPluginOptions, HTTPMethods, RouteOptions }
 
 import type FastController from './FastController'
 import FastControllerError_InvalidControllerPath from './errors/FastControllerError_InvalidControllerPath'
-import { METHODS, MethodSpecific } from './FastController'
+import { METHODS } from './FastController'
 
 type FastControllerModule = { controller: typeof FastController, route: string }
 type FastControllerOptions = FastifyPluginOptions & {
     path: string,
 }
-
-const bodyMethods = ['POST', 'PUT', 'DELETE', 'PATCH']
 
 /**
  * FastControllers Fastify Plugin
@@ -27,13 +25,13 @@ const bodyMethods = ['POST', 'PUT', 'DELETE', 'PATCH']
  * @param options  - The provided Fastify options object
  * @param done     - The plugin done callback 
  */
-export default async function fastControllers(instance: FastifyInstance, options: FastControllerOptions, done: (err?: Error) => void) {
+export default function fastControllers(instance: FastifyInstance, options: FastControllerOptions) {
 
     if (!options || !options.path || !path.isAbsolute(options.path)) {
         throw new FastControllerError_InvalidControllerPath(options.path || 'undefined')
     }
 
-    new Promise<Array<string>>((resolve, reject) => {
+    return new Promise<Array<string>>((resolve) => {
 
         function scan(contPath: string): Array<string> {
 
@@ -89,7 +87,7 @@ export default async function fastControllers(instance: FastifyInstance, options
         .then( scopedModules => {
 
             return Promise.all(Object.keys(scopedModules).map(scope => {
-                return instance.register((_scope, options, next) => {
+                return instance.register((_scope, _, next) => {
                     scopedModules[scope]?.forEach(module => {
 
                         /**
@@ -97,7 +95,7 @@ export default async function fastControllers(instance: FastifyInstance, options
                          * methods and schema properties.
                          */
                         const controller = new module.controller(instance, module.route) as FastController
-                        const methods = controller.methods
+                        //const methods = controller.methods
 
                         /**
                          * If the schema property is not defined, then we create one controller instance
@@ -128,12 +126,12 @@ export default async function fastControllers(instance: FastifyInstance, options
         }))
     })
 
-    .catch (err => {
-        console.error(err)
-        done(err)   
-    })
+    // .catch (err => {
+    //     console.error(err)
+    //     done(err)   
+    // })
 
-    .then(() => { done() })
+    // .then(() => { done() })
 }
 
 

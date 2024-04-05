@@ -347,7 +347,7 @@ export default class FastController implements RouteOptions {
                 // If the onSocketMessageReceived hook is defined then add a message handler to the socket
                 if (this.onSocketMessageReceived !== undefined && typeof this.onSocketMessageReceived === 'function') {
 
-                    connection.socket.on('message', (message: string, connection: SocketStream) => {
+                    connection.socket.on('message', (message: string) => {
 
                         return this.onValidateIncomingSocketMessage(message, key)
                     })
@@ -459,7 +459,7 @@ export default class FastController implements RouteOptions {
      * 
      * @returns - any WebSocket Connection index value. This is the value that will be used to reference this connection. 
      */
-    public onResolveSocketConnectionKey(connection: SocketStream, request: FastifyRequest): any {
+    public onResolveSocketConnectionKey(_: SocketStream, request: FastifyRequest): any {
 
         return request.id
     }
@@ -503,7 +503,7 @@ export default class FastController implements RouteOptions {
      * @param key 
      * @param error 
      */
-    public onSocketMessageReceivedError(message: any, key: any, error: any): void {
+    public onSocketMessageReceivedError(_message: any, _key: any, error: any): void {
         console.error('onSocketMessageReceivedError: ', error)
     }
 
@@ -514,7 +514,7 @@ export default class FastController implements RouteOptions {
      * @param key 
      * @param error 
      */
-    public onSocketMessageSendError(message: any, key: any, error: any): any {
+    public onSocketMessageSendError(_message: any, _key: any, error: any): any {
 
         console.error('onSocketMessageSendError: ', error)
         return error
