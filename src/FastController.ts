@@ -1,10 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply, 
     FastifySchema, RouteOptions, HTTPMethods } from 'fastify'
 
-import { SocketStream } from '@fastify/websocket'
-
-import FastControllerError_MethodHandlerNotDefined from './errors/FastControllerError_MethodHandlerNotDefined'
-import { ValidationFunction } from 'fastify/types/request'
+import FastControllerError_MethodHandlerNotDefined from './exceptions/FastControllerException_MethodHandlerNotDefined'
 
 
 export type MethodSpecific = { [key in Lowercase<HTTPMethods>]?: unknown }
@@ -49,6 +46,7 @@ export default class FastController implements RouteOptions {
 
     /**************** Fastify Route 'Options' ****************/
 
+
     /**
      * The relative path that this controller will handle.  
      * 
@@ -85,13 +83,13 @@ export default class FastController implements RouteOptions {
      * @param re - The FastifyReply or FastifyRequest
      * @returns - void | Promise<unknown> | string | object 
      */
-    public handler = (requestOrConn: FastifyRequest | SocketStream, replyOrRequest: FastifyReply | FastifyRequest): void | Promise<unknown> | string | object => {
+    public handler = (requestOrConn: FastifyRequest, replyOrRequest: FastifyReply | FastifyRequest): void | Promise<unknown> | string | object => {
 
         // Determine if this is a websocket connection and if so, call the websocket handler
-        if ( this.websocket ) {
+        // if ( this.websocket ) {
 
-            return this.webSocketHandler(requestOrConn as SocketStream, replyOrRequest as FastifyRequest)
-        }
+        //     return this.webSocketHandler(requestOrConn as SocketStream, replyOrRequest as FastifyRequest)
+        // }
 
         const request = requestOrConn as FastifyRequest
         const reply = replyOrRequest as FastifyReply
@@ -108,11 +106,11 @@ export default class FastController implements RouteOptions {
     }
 
 
-    /**************** End Fastify Route 'Options' /****************
+    /**************** End Fastify Route 'Options' /****************/
 
 
 
-    /**************** FastController Members /****************
+    /**************** FastController Members /****************/
 
 
     /**
@@ -140,7 +138,6 @@ export default class FastController implements RouteOptions {
      * This value is used by the FastController plugin to append any route param segments to the url.
      */
     public params?: { [key in Lowercase<HTTPMethods>]?: Array<string> | string } | Array<string> | string
-
     /**
      * FastController constructor
      * 
@@ -152,39 +149,26 @@ export default class FastController implements RouteOptions {
         this._instance = i
         this.url = route
 
-        /**
-         * If the onSocketConnected method is defined, then this controller is a websocket controller
-         */
-        if (typeof this.onSocketConnected === 'function') {
+        const methods = new Array<Uppercase<HTTPMethods>>()
 
-            this.method = 'GET'
-            this.websocket = true
-        }
-        else {
+        METHODS.forEach(method => {
+            if (typeof this[method as keyof FastController] === 'function') {
+                methods.push(method.toUpperCase() as Uppercase<HTTPMethods>)
+            }
+        })
 
-            const methods = new Array<Uppercase<HTTPMethods>>()
-
-            METHODS.forEach(method => {
-                if (typeof this[method as keyof FastController] === 'function') {
-                    methods.push(method.toUpperCase() as Uppercase<HTTPMethods>)
-                }
-            })
-
-            this.method = methods
-        }
-
+        this.method = methods
+        
         if (this.method.length === 0 && typeof this.handle !== 'function') {
             throw new FastControllerError_MethodHandlerNotDefined(this.constructor['name'])
         }
 
         this.init()
     }
-
     /**
      * FastController init hook
      */
     protected init() { }
-
     /**
      * The FastifyInstance setter
      * 
@@ -193,21 +177,18 @@ export default class FastController implements RouteOptions {
     set instance(i: FastifyInstance) {
         this._instance = i
     }
-
     /**
      * The FastifyInstance getter
      */
     get instance() {
         return this._instance
     }
-
     /**
      * Getter returns the array version of method property
      */
     public get methods(): Array<Uppercase<HTTPMethods>> {
         return Array.isArray(this.method) ? this.method : [this.method]
     }
-
     /**
      * Fastify Route Options preValidation hook
      * 
@@ -223,7 +204,6 @@ export default class FastController implements RouteOptions {
 
         done()
     }
-
     /**
      * override this method to handle the underlying preValidation hook from Fastify
      * 
@@ -233,38 +213,28 @@ export default class FastController implements RouteOptions {
      */
     public onPreValidation?(request: FastifyRequest, reply: FastifyReply, done: (err?: Error) => void): void | Promise<unknown> | string
 
+
+
+    /**************** HTTP Method specific handlers *******************/
+
+
+
     public delete?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public get?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public head?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public patch?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public post?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public put?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public options?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public search?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public trace?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public propfind?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public proppatch?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public mkcol?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public copy?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public move?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public lock?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public unlock?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
-
     public handle?(request: FastifyRequest, reply: FastifyReply): void | Promise<unknown> | string | object
 
 
@@ -273,337 +243,362 @@ export default class FastController implements RouteOptions {
 
 
 
-    /**
-     * Stores the websocket connections for this controller
-     */
-    protected sockets: Map<any, SocketStream> | null = null
+    // /**
+    //  * Stores the websocket connections for this controller
+    //  * 
+    //  * @deprecated - This property is not used and will be removed in a future release
+    //  */
+    // protected sockets: Map<any, SocketStream> | null = null
+    // /**
+    //  * Stores the websocket schema validator for the incoming message
+    //  * 
+    //  * @deprecated - This property is not used and will be removed in a future release
+    //  */
+    // protected socketSchemaValidatorIn?: ValidationFunction
+    // /**
+    //  * Stores the websocket schema validator for the outgoing message
+    //  * 
+    //  * @deprecated - This property is not used and will be removed in a future release
+    //  */
+    // protected socketSchemaValidatorOut?: ValidationFunction
 
-    protected socketSchemaValidatorIn?: ValidationFunction
-    protected socketSchemaValidatorOut?: ValidationFunction
+    // /**
+    //  * compileSocketSchemas method compiles the socket schemas defined in the schema property
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @returns - void
+    //  */
+    // private compileSocketSchemas() {
 
-    /**
-     * compileSocketSchemas method compiles the socket schemas defined in the schema property
-     * 
-     * @returns - void
-     */
-    private compileSocketSchemas() {
+    //     return import('ajv').then(Ajv => {
 
-        return import('ajv').then(Ajv => {
+    //         if ((!this.socketSchemaValidatorIn && !this.socketSchemaValidatorOut) && this.schema?.socket && (this.schema.socket.in || this.schema.socket.out)) {
 
-            if ((!this.socketSchemaValidatorIn && !this.socketSchemaValidatorOut) && this.schema?.socket && (this.schema.socket.in || this.schema.socket.out)) {
+    //             const ajv = new Ajv.default({
+    //                 allErrors: true,
+    //                 coerceTypes: false,
+    //                 strict: false,
+    //                 removeAdditional: true,
+    //                 allowUnionTypes: true
+    //             })
 
-                const ajv = new Ajv.default({
-                    allErrors: true,
-                    coerceTypes: false,
-                    strict: false,
-                    removeAdditional: true,
-                    allowUnionTypes: true
-                })
+    //             if (this.schema?.socket?.in) {
 
-                if (this.schema?.socket?.in) {
+    //                 this.socketSchemaValidatorIn = ajv.compile(this.schema.socket.in, true)
+    //             }
 
-                    this.socketSchemaValidatorIn = ajv.compile(this.schema.socket.in, true)
-                }
+    //             if (this.schema?.socket?.out) {
 
-                if (this.schema?.socket?.out) {
+    //                 this.socketSchemaValidatorOut = ajv.compile(this.schema.socket.out!, true)
+    //             }
+    //         }
+    //     })
+    // }
+    // /**
+    //  * fastController plugin hook for handling websocket connections
+    //  * override this method to handle websocket connections
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @param connection - The SocketStream
+    //  * @param request - The FastifyRequest
+    //  * 
+    //  * @returns - void | Promise<unknown> | string | object
+    //  */
+    // public webSocketHandler(connection: SocketStream, request: FastifyRequest): void | Promise<unknown> | string | object {
 
-                    this.socketSchemaValidatorOut = ajv.compile(this.schema.socket.out!, true)
-                }
-            }
-        })
-    }
+    //     // Determine if the derived class has defined the onSocketConnected hook
+    //     if (this.onSocketConnected !== undefined && typeof this.onSocketConnected === 'function') {
 
-    /**
-     * fastController plugin hook for handling websocket connections
-     * override this method to handle websocket connections
-     * 
-     * @param connection - The SocketStream
-     * @param request - The FastifyRequest
-     * 
-     * @returns - void | Promise<unknown> | string | object
-     */
-    public webSocketHandler(connection: SocketStream, request: FastifyRequest): void | Promise<unknown> | string | object {
+    //         // Attempt to compile any socket schemas
+    //         return this.compileSocketSchemas().then(() => {
 
-        // Determine if the derived class has defined the onSocketConnected hook
-        if (this.onSocketConnected !== undefined && typeof this.onSocketConnected === 'function') {
-
-            // Attempt to compile any socket schemas
-            return this.compileSocketSchemas().then(() => {
-
-                // Get the key for this connection by calling onResolveSocketConnectionKey
-                const key = this.onResolveSocketConnectionKey(connection, request)
+    //             // Get the key for this connection by calling onResolveSocketConnectionKey
+    //             const key = this.onResolveSocketConnectionKey(connection, request)
                 
-                // If the key is not defined then throw an error
-                if (!key) throw new Error('onSocketConnected: key is undefined')
+    //             // If the key is not defined then throw an error
+    //             if (!key) throw new Error('onSocketConnected: key is undefined')
 
-                // If the sockets property is not defined then create it
-                if (this.sockets === null) {
-                    this.sockets = new Map()
-                }
+    //             // If the sockets property is not defined then create it
+    //             if (this.sockets === null) {
+    //                 this.sockets = new Map()
+    //             }
 
-                // Add the connection to the sockets map
-                this.sockets.set(key, connection)
+    //             // Add the connection to the sockets map
+    //             this.sockets.set(key, connection)
 
-                // If the onSocketMessageReceived hook is defined then add a message handler to the socket
-                if (this.onSocketMessageReceived !== undefined && typeof this.onSocketMessageReceived === 'function') {
+    //             // If the onSocketMessageReceived hook is defined then add a message handler to the socket
+    //             if (this.onSocketMessageReceived !== undefined && typeof this.onSocketMessageReceived === 'function') {
 
-                    connection.socket.on('message', (message: string) => {
+    //                 connection.socket.on('message', (message: string) => {
 
-                        return this.onValidateIncomingSocketMessage(message, key)
-                    })
-                }
+    //                     return this.onValidateIncomingSocketMessage(message, key)
+    //                 })
+    //             }
 
-                // If the onSocketClose hook is defined then add a close handler to the socket
-                if (this.onSocketDisconnected !== undefined && typeof this.onSocketDisconnected === 'function') {
+    //             // If the onSocketClose hook is defined then add a close handler to the socket
+    //             if (this.onSocketDisconnected !== undefined && typeof this.onSocketDisconnected === 'function') {
 
-                    connection.socket.on('close', (code: number, reason: string, connection: SocketStream) => {
+    //                 connection.socket.on('close', (code: number, reason: string, connection: SocketStream) => {
 
-                        if(this.sockets !== null && this.sockets.has(key)) {
-                            this.sockets.delete(key)
-                        }
+    //                     if(this.sockets !== null && this.sockets.has(key)) {
+    //                         this.sockets.delete(key)
+    //                     }
 
-                        return this.onSocketDisconnected!(connection, key, code, reason)
-                    })
-                }
+    //                     return this.onSocketDisconnected!(connection, key, code, reason)
+    //                 })
+    //             }
 
-                // Call the user defined onSocketConnected hook
-                return this.onSocketConnected!(connection, request)
-            })
-        }
-    }
+    //             // Call the user defined onSocketConnected hook
+    //             return this.onSocketConnected!(connection, request)
+    //         })
+    //     }
+    // }
+    // /**
+    //  * Validates incoming socket messages against the socket.in schema
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @param connection - The SocketStream
+    //  * @param message - The message to validate 
+    //  * 
+    //  * @returns - void
+    //  */
+    // public onValidateIncomingSocketMessage(message: any, key: any) {
 
-    /**
-     * Validates incoming socket messages against the socket.in schema
-     * 
-     * @param connection - The SocketStream
-     * @param message - The message to validate 
-     * 
-     * @returns - void
-     */
-    public onValidateIncomingSocketMessage(message: any, key: any) {
+    //     if (message instanceof Buffer) {
+    //         message = message.toString()
+    //     }
 
-        if (message instanceof Buffer) {
-            message = message.toString()
-        }
+    //     if (typeof message === 'string') {
 
-        if (typeof message === 'string') {
+    //         try {
+    //             const result = JSON.parse(message)
 
-            try {
-                const result = JSON.parse(message)
+    //             if (result !== undefined && typeof result === 'object') {
 
-                if (result !== undefined && typeof result === 'object') {
+    //                 message = result
+    //             }
+    //         }
+    //         catch (e) {
 
-                    message = result
-                }
-            }
-            catch (e) {
+    //             console.error(e)
+    //         }
+    //     }
 
-                console.error(e)
-            }
-        }
+    //     // If the socketSchemaValidatorIn is defined and is a function then validate the message
+    //     if (this.socketSchemaValidatorIn !== undefined) {
 
-        // If the socketSchemaValidatorIn is defined and is a function then validate the message
-        if (this.socketSchemaValidatorIn !== undefined) {
+    //         const result = this.socketSchemaValidatorIn(message)
 
-            const result = this.socketSchemaValidatorIn(message)
+    //         if (!result) {
 
-            if (!result) {
+    //             const errors = this.socketSchemaValidatorIn.errors
 
-                const errors = this.socketSchemaValidatorIn.errors
+    //             const error = {
+    //                 error: {
+    //                     message: errors?.at(0)?.message || 'Invalid socket message'
+    //                 }
+    //             }
 
-                const error = {
-                    error: {
-                        message: errors?.at(0)?.message || 'Invalid socket message'
-                    }
-                }
+    //             console.error('onValidateIncomingSocketMessage: error: ', error)
+    //             return this.onSocketMessageReceivedError(message, key, error)
+    //         }
+    //     }
 
-                console.error('onValidateIncomingSocketMessage: error: ', error)
-                return this.onSocketMessageReceivedError(message, key, error)
-            }
-        }
+    //     return this.onSocketMessageReceived!(message, key)
+    // }
+    // /**
+    //  * Validates outgoing socket messages against the socket.out schema
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @param message - The message to validate
+    //  * @param key - The key value returned by the onSocketConnected hook
+    //  * 
+    //  * @returns - boolean
+    //  */
+    // public socketValidateOutgoingMessage(message: any, key: any): boolean {
 
-        return this.onSocketMessageReceived!(message, key)
-    }
+    //     if (this.socketSchemaValidatorOut !== undefined && typeof this.socketSchemaValidatorOut === 'function') {
 
-    /**
-     * Validates outgoing socket messages against the socket.out schema
-     * 
-     * @param message - The message to validate
-     * @param key - The key value returned by the onSocketConnected hook
-     * 
-     * @returns - boolean
-     */
-    public socketValidateOutgoingMessage(message: any, key: any): boolean {
+    //         if (!this.socketSchemaValidatorOut(message)) {
 
-        if (this.socketSchemaValidatorOut !== undefined && typeof this.socketSchemaValidatorOut === 'function') {
+    //             this.socketSendMessage(key, JSON.stringify(this.socketSchemaValidatorOut.errors))
 
-            if (!this.socketSchemaValidatorOut(message)) {
+    //             throw this.socketSchemaValidatorOut.errors
+    //         }
+    //     }
 
-                this.socketSendMessage(key, JSON.stringify(this.socketSchemaValidatorOut.errors))
+    //     return this.socketSendMessage(message, key)
+    // }
+    // /**
+    //  * Creates a socket map key for the connection, and request.
+    //  * This key is used to reference the connection in the sockets map.
+    //  * 
+    //  * The default implementation returns the FastifyRequest id property.
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @param connection - The SocketStream
+    //  * @param request - The FastifyRequest
+    //  * 
+    //  * @returns - any WebSocket Connection index value. This is the value that will be used to reference this connection. 
+    //  */
+    // public onResolveSocketConnectionKey(_: SocketStream, request: FastifyRequest): any {
 
-                throw this.socketSchemaValidatorOut.errors
-            }
-        }
+    //     return request.id
+    // }
+    // /**
+    //  * onSocketConnected Hook is called when a websocket connection is established
+    //  * 
+    //  * @deprecated - This hook is not used and will be removed in a future release
+    //  * 
+    //  * @param connection - The SocketStream
+    //  * @param request - The FastifyRequest
+    //  * 
+    //  * @returns - void.
+    //  *
+    //  *  
+    //  */
+    // public onSocketConnected?(connection: SocketStream, request: FastifyRequest): void
+    // /**
+    //  * onSocketDisconnected Hook is called when a websocket connection is closed
+    //  * 
+    //  * @deprecated - This hook is not used and will be removed in a future release
+    //  * 
+    //  * @param code - The websocket close code
+    //  * @param reason - The websocket close reason
+    //  * @param connection - The SocketStream
+    //  * @param key - The key value returned by the onSocketConnected hook
+    //  * 
+    //  * @returns - void
+    //  */
+    // public onSocketDisconnected?(connection: SocketStream, key: any, code: number, reason: string ): void
+    // /**
+    //  * onSocketMessageReceived Hook is called when a websocket message is received
+    //  * 
+    //  * @deprecated - This hook is not used and will be removed in a future release
+    //  * 
+    //  * @param message - The message received 
+    //  *   
+    //  */
+    // public onSocketMessageReceived?(message: any, key: any): void
+    // /**
+    //  * onSocketMessageReceivedError Hook is called when an error occurs on websocket message received
+    //  * 
+    //  * @deprecated - This hook is not used and will be removed in a future release
+    //  * 
+    //  * @param message 
+    //  * @param key 
+    //  * @param error 
+    //  */
+    // public onSocketMessageReceivedError(_message: any, _key: any, error: any): void {
+    //     console.error('onSocketMessageReceivedError: ', error)
+    // }
+    // /**
+    //  * onSocketMessageSendError Hook is called when an error occurs on websocket message send
+    //  * 
+    //  * @deprecated - This hook is not used and will be removed in a future release
+    //  * 
+    //  * @param message 
+    //  * @param key 
+    //  * @param error 
+    //  */
+    // public onSocketMessageSendError(_message: any, _key: any, error: any): any {
 
-        return this.socketSendMessage(message, key)
-    }
+    //     console.error('onSocketMessageSendError: ', error)
+    //     return error
+    // }
+    // /**
+    //  * socketSendMessage method sends a message to a websocket connection defined by the key parameter
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @param key - The key value returned by the onSocketConnected hook
+    //  * @param message - The message to send
+    //  * 
+    //  * @returns - boolean
+    //  */
+    // public socketSendMessage(message: any, key: any): boolean {
 
-    /**
-     * Creates a socket map key for the connection, and request.
-     * This key is used to reference the connection in the sockets map.
-     * 
-     * The default implementation returns the FastifyRequest id property.
-     * 
-     * @param connection - The SocketStream
-     * @param request - The FastifyRequest
-     * 
-     * @returns - any WebSocket Connection index value. This is the value that will be used to reference this connection. 
-     */
-    public onResolveSocketConnectionKey(_: SocketStream, request: FastifyRequest): any {
+    //     if (this.sockets !== null && this.sockets.has(key)) {
 
-        return request.id
-    }
+    //         let mess: string = message
 
-    /**
-     * onSocketConnected Hook is called when a websocket connection is established
-     * 
-     * @param connection - The SocketStream
-     * @param request - The FastifyRequest
-     * 
-     * @returns - void.
-     *
-     *  
-     */
-    public onSocketConnected?(connection: SocketStream, request: FastifyRequest): void
+    //         if (this.schema?.socket?.out && this.socketSchemaValidatorOut !== undefined) {
 
-    /**
-     * onSocketDisconnected Hook is called when a websocket connection is closed
-     * 
-     * @param code - The websocket close code
-     * @param reason - The websocket close reason
-     * @param connection - The SocketStream
-     * @param key - The key value returned by the onSocketConnected hook
-     * 
-     * @returns - void
-     */
-    public onSocketDisconnected?(connection: SocketStream, key: any, code: number, reason: string ): void
+    //             const result = this.socketSchemaValidatorOut(mess)
 
-    /**
-     * onSocketMessageReceived Hook is called when a websocket message is received
-     * 
-     * @param message - The message received 
-     *   
-     */
-    public onSocketMessageReceived?(message: any, key: any): void
+    //             if (!result) {
 
-    /**
-     * onSocketMessageReceivedError Hook is called when an error occurs on websocket message received
-     * 
-     * @param message 
-     * @param key 
-     * @param error 
-     */
-    public onSocketMessageReceivedError(_message: any, _key: any, error: any): void {
-        console.error('onSocketMessageReceivedError: ', error)
-    }
+    //                 const errors = this.socketSchemaValidatorOut.errors
+    //                 console.log('socketSendMessage: errors: ', errors)
 
-    /**
-     * onSocketMessageSendError Hook is called when an error occurs on websocket message send
-     * 
-     * @param message 
-     * @param key 
-     * @param error 
-     */
-    public onSocketMessageSendError(_message: any, _key: any, error: any): any {
+    //                 const error = {
+    //                     error: {
+    //                         message: errors?.at(0)?.message || 'Invalid socket message'
+    //                     }
+    //                 }
 
-        console.error('onSocketMessageSendError: ', error)
-        return error
-    }
+    //                 console.error('socketSendMessage: error: ', error)
+    //                 mess = this.onSocketMessageSendError(message, key, error)
+    //             }
+    //         }
 
-    /**
-     * socketSendMessage method sends a message to a websocket connection defined by the key parameter
-     * 
-     * @param key - The key value returned by the onSocketConnected hook
-     * @param message - The message to send
-     * 
-     * @returns - boolean
-     */
-    public socketSendMessage(message: any, key: any): boolean {
+    //         if (typeof mess === 'object') {
 
-        if (this.sockets !== null && this.sockets.has(key)) {
+    //             mess = JSON.stringify(mess)
+    //         }
 
-            let mess: string = message
+    //         this.sockets.get(key)?.socket.send(mess)
 
-            if (this.schema?.socket?.out && this.socketSchemaValidatorOut !== undefined) {
+    //         return true
+    //     }
 
-                const result = this.socketSchemaValidatorOut(mess)
+    //     return false
+    // }
+    // /**
+    //  * socketBroadcastMessage method broadcasts a message to all websocket connections
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @param message - The message to send
+    //  * 
+    //  * @returns - boolean
+    //  */
+    // public socketBroadcastMessage(message: any): boolean {
 
-                if (!result) {
+    //     if (this.sockets !== null) {
 
-                    const errors = this.socketSchemaValidatorOut.errors
-                    console.log('socketSendMessage: errors: ', errors)
+    //         this.sockets.forEach(socket => {
+    //             socket.socket.send(message)
+    //         })
 
-                    const error = {
-                        error: {
-                            message: errors?.at(0)?.message || 'Invalid socket message'
-                        }
-                    }
+    //         return true
+    //     }
 
-                    console.error('socketSendMessage: error: ', error)
-                    mess = this.onSocketMessageSendError(message, key, error)
-                }
-            }
+    //     return false
+    // }
+    // /**
+    //  * socketCloseConnection method closes a websocket connection defined by the key parameter
+    //  * 
+    //  * @deprecated - This method is not used and will be removed in a future release
+    //  * 
+    //  * @param key - The key value returned by the onSocketConnected hook
+    //  * 
+    //  * @returns - boolean
+    //  */
+    // public socketCloseConnection(key: any): boolean {
 
-            if (typeof mess === 'object') {
+    //     if (this.sockets !== null && this.sockets.has(key)) {
 
-                mess = JSON.stringify(mess)
-            }
+    //         this.sockets.get(key)?.socket.close()
+    //         return this.sockets.delete(key)
+    //     }
 
-            this.sockets.get(key)?.socket.send(mess)
-
-            return true
-        }
-
-        return false
-    }
-
-    /**
-     * socketBroadcastMessage method broadcasts a message to all websocket connections
-     * 
-     * @param message - The message to send
-     * 
-     * @returns - boolean
-     */
-    public socketBroadcastMessage(message: any): boolean {
-
-        if (this.sockets !== null) {
-
-            this.sockets.forEach(socket => {
-                socket.socket.send(message)
-            })
-
-            return true
-        }
-
-        return false
-    }
-
-    /**
-     * socketCloseConnection method closes a websocket connection defined by the key parameter
-     * 
-     * @param key - The key value returned by the onSocketConnected hook
-     * 
-     * @returns - boolean
-     */
-    public socketCloseConnection(key: any): boolean {
-
-        if (this.sockets !== null && this.sockets.has(key)) {
-
-            this.sockets.get(key)?.socket.close()
-            return this.sockets.delete(key)
-        }
-
-        return false
-    }
+    //     return false
+    // }
 }
 

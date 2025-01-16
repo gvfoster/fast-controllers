@@ -1,8 +1,8 @@
 
 
-class FastControllerError extends Error {
+class FastControllerException extends Error {
     
-    override name = 'FastControllerError'
+    override name = 'FastControllerException'
     public statusCode = 500
 
     constructor(message:string, statusCode?:number) {
@@ -13,4 +13,5 @@ class FastControllerError extends Error {
     }
 }
 
-export default FastControllerError
+export { FastControllerException }
+export default FastControllerException
