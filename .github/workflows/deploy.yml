@@ -16,7 +16,7 @@ jobs:
     - name: Checking out Project 
       uses: actions/checkout@v3
     
-    - name: Use Setup Node.js [18.x]
+    - name: Use Setup Node.js [20.x]
       uses: actions/setup-node@v3
       with:
         node-version: 20.x

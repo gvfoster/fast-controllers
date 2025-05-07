@@ -46,9 +46,14 @@ export default function fastControllers(instance: FastifyInstance, options: Fast
 
             return Promise.all(paths.map(path => {
                 return import(path).then(module => {
+
                     return {
                         controller: module.default,
-                        route: path.substring(options.path.length).toLowerCase().replace(/\\/g, '/')
+                        route: path.substring(options.path.length)
+                        .toLowerCase()
+                        .replace(/index\/?$/, '') 
+                        .replace(/\\/g, '/')
+                        .replace(/\/+$/, '')
                     } as FastControllerModule
                 })
             }))
@@ -113,13 +118,6 @@ export default function fastControllers(instance: FastifyInstance, options: Fast
             })
         }))
     })
-
-    // .catch (err => {
-    //     console.error(err)
-    //     done(err)   
-    // })
-
-    // .then(() => { done() })
 }
 
 
@@ -147,7 +145,7 @@ function scanControllers(controllerPath: string): Promise<Array<string>> {
                     paths.push(...scan(path.join(cPath, entry.name)))
                 }
 
-                else if (entry.isFile() && !entry.name.startsWith('index', 0) && !entry.name.endsWith('.map')) {
+                else if (entry.isFile() /* && !entry.name.startsWith('index', 0) */ && !entry.name.endsWith('.map')) {
 
                     let modulePath = path.join(cPath, entry.name)
                     paths.push(modulePath.substring(0, modulePath.lastIndexOf('.')))
@@ -161,7 +159,6 @@ function scanControllers(controllerPath: string): Promise<Array<string>> {
         resolve(scan(controllerPath))
     })
 }
-
 /**
  * Prepare a controller for registration with Fastify
  * 
