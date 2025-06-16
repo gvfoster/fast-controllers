@@ -183,13 +183,13 @@ function prepareController(controller: FastController, method: HTTPMethods): Rou
 
         // If we are a string now assume this is pre formatted and just append it to the url
         if (typeof controller.params === 'string') {
-            controller.url = path.join(controller.url, controller.params)
+            controller.url = path.posix.join(controller.url, controller.params)
         }
 
         // Otherwise must be an array then rewrite the url to include the params
         else if( Array.isArray(controller.params) ) {
-            
-            controller.url = path.join(controller.url, ...(controller.params as Array<string>).map(param => `:${param}`))
+
+            controller.url = path.posix.join(controller.url, ...(controller.params as Array<string>).map(param => `:${param}`))
         }
     }
 
@@ -295,3 +295,5 @@ function prepareController(controller: FastController, method: HTTPMethods): Rou
 
     return controller as RouteOptions
 }
+
+export { prepareController }
