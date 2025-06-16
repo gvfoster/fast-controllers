@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { FastifyRequest, FastifyReply } from 'fastify';
 
 import FastController from '../src/FastController';
 import { prepareController } from '../src/fastControllers';
@@ -10,6 +11,11 @@ const instance: any = {};
 class DummyController extends FastController {
     constructor() {
         super(instance, '/dummy');
+    }
+
+    // Add a get method to satisfy FastController requirements
+    override async get(request: FastifyRequest, reply: FastifyReply) {
+        return { result: 'test' };
     }
 }
 
