@@ -3,8 +3,6 @@ name: fast-controllers-npm
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build-deploy-web:
