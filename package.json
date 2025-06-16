@@ -17,7 +17,8 @@
     "bugs": { "url": "https://github.com/gvfoster/fast-controllers/issues" },
     "homepage": "https://github.com/gvfoster/fast-controllers#readme",
     "scripts": {
-        "build-debug": "echo Building...."
+        "build-debug": "echo Building....",
+        "test": "tsc -p tsconfig.tests.json && node --test build/tests/prepareController.test.js"
     },
     "dependencies": { 
         "fastify": "^5.3.2"

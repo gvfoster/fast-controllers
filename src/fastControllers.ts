@@ -295,3 +295,5 @@ function prepareController(controller: FastController, method: HTTPMethods): Rou
 
     return controller as RouteOptions
 }
+
+export { prepareController }
