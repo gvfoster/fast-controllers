@@ -1,13 +1,23 @@
 import path from 'node:path'
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 
 import type { FastifyInstance, FastifyPluginOptions, HTTPMethods, RouteOptions } from 'fastify'
 
 import type FastController from './FastController'
+import type { MethodSpecificString } from './FastController'
 import FastControllerError_InvalidControllerPath from './exceptions/FastControllerException_InvalidControllerPath'
 import { METHODS } from './FastController'
 
 type FastControllerModule = { controller: typeof FastController, route: string }
+
+/**
+ * Controller modules are loaded with require semantics because scanControllers produces
+ * extension-less paths, which a true ESM import() refuses to resolve. Prior releases were
+ * compiled with downlevel commonjs emit where import() became require(), so this also
+ * preserves the published loading behavior under the node16 module setting.
+ */
+const requireController = createRequire(__filename)
 type FastControllerOptions = FastifyPluginOptions & {
     path: string,
 }
@@ -45,10 +55,10 @@ export default function fastControllers(instance: FastifyInstance, options: Fast
         .then(paths => {
 
             return Promise.all(paths.map(path => {
-                return import(path).then(module => {
+                return Promise.resolve(requireController(path)).then(module => {
 
                     return {
-                        controller: module.default,
+                        controller: module.default ?? module,
                         route: path.substring(options.path.length)
                         .toLowerCase()
                         .replace(/index\/?$/, '') 
@@ -291,6 +301,36 @@ function prepareController(controller: FastController, method: HTTPMethods): Rou
                 delete controller.schema.body
             }
         }
+    }
+
+    /**
+     * Handle narrowing the operationId, summary and description schema properties for this method.
+     * 
+     * A string value is copied through as-is. A method-keyed object is replaced with the value for 
+     * this method, or removed entirely when no entry for this method exists. 
+     */
+    if( controller.schema ) {
+
+        const schema = controller.schema
+        const scalarKeys = ['operationId', 'summary', 'description'] as const
+
+        scalarKeys.forEach( key => {
+
+            const value = schema[key]
+
+            if( value && typeof value === 'object' ) {
+
+                // Replace the value with the method specific value if it exists
+                if( value.hasOwnProperty(lMethod) ) {
+                    schema[key] = (value as MethodSpecificString)[lMethod]
+                }
+
+                // Otherwise remove the method-keyed object from this route's schema entirely
+                else {
+                    delete schema[key]
+                }
+            }
+        })
     }
 
     return controller as RouteOptions

@@ -1,8 +1,10 @@
 {
     "name": "fast-controllers",
-    "version": "5.2.0",
+    "version": "6.0.0",
     "description": "class based controllers, and implied folder route mapping for Fastify",
-    "author": { "name": "Greg Foster (gvfoster)" },
+    "author": {
+        "name": "Greg Foster (gvfoster)"
+    },
     "main": "./index.js",
     "exports": {
         ".": "./index.js",
@@ -11,10 +13,18 @@
         "./fastControllers": "./fastControllers.js",
         "./errors/*": "./errors/*.js"
     },
-    "repository": { "type": "git", "url": "git+https://github.com/gvfoster/fast-controllers.git" },
-    "keywords": [ "Fastify", "Controllers" ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/gvfoster/fast-controllers.git"
+    },
+    "keywords": [
+        "Fastify",
+        "Controllers"
+    ],
     "license": "ISC",
-    "bugs": { "url": "https://github.com/gvfoster/fast-controllers/issues" },
+    "bugs": {
+        "url": "https://github.com/gvfoster/fast-controllers/issues"
+    },
     "homepage": "https://github.com/gvfoster/fast-controllers#readme",
     "scripts": {
         "build-debug": "echo Building....",
@@ -25,6 +35,7 @@
         "fastify": "^5.8.5"
     },
     "devDependencies": {
+        "@fastify/swagger": "^9.8.1",
         "fastify": "5.8.5",
         "ts-node": "^10.9.2",
         "typescript": "^6.0.3"

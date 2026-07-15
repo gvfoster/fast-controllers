@@ -6,6 +6,22 @@ import FastControllerError_MethodHandlerNotDefined from './exceptions/FastContro
 
 export type MethodSpecific = { [key in Lowercase<HTTPMethods>]?: unknown }
 
+export type MethodSpecificString = { [key in Lowercase<HTTPMethods>]?: string }
+
+/**
+ * The FastifySchema extended with method-keyed support for the scalar OpenAPI 
+ * properties (operationId, summary, description).
+ * 
+ * These properties are intentionally typed here rather than merged into the fastify 
+ * FastifySchema interface, because @fastify/swagger augments the same properties as 
+ * plain strings and conflicting interface merges resolve by file load order.
+ */
+export type FastControllerSchema = Omit<FastifySchema, 'operationId' | 'summary' | 'description'> & {
+    operationId?: string | MethodSpecificString
+    summary?: string | MethodSpecificString
+    description?: string | MethodSpecificString
+}
+
 
 declare module 'fastify' {
 
@@ -41,7 +57,13 @@ export const METHODS: Array<Lowercase<HTTPMethods>> = ['delete', 'get', 'head', 
  * with some object orient functionality, and implements a structured route paradigm
  * that is defined by the controllers folder structure.   
  */
-export default class FastController implements RouteOptions {
+/**
+ * The schema property is excluded from the implemented RouteOptions because its 
+ * FastControllerSchema type only structurally matches FastifySchema until a plugin 
+ * like @fastify/swagger augments the scalar OpenAPI properties as plain strings. 
+ * prepareController narrows those properties to strings before route registration.
+ */
+export default class FastController implements Omit<RouteOptions, 'schema'> {
 
 
     /**************** Fastify Route 'Options' ****************/
@@ -59,7 +81,7 @@ export default class FastController implements RouteOptions {
      * 
      * This property is augmented by the FastController plugin to support schemas per http method.
      */
-    public schema?: FastifySchema 
+    public schema?: FastControllerSchema 
 
     /**
      * The Fastify Route Options websocket flag

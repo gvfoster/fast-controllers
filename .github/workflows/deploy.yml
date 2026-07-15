@@ -5,34 +5,36 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-deploy-web:
+  test-publish:
 
     runs-on: ubuntu-latest
 
     steps:
 
-    - name: Checking out Project 
-      uses: actions/checkout@v3
-    
-    - name: Use Setup Node.js [20.x]
-      uses: actions/setup-node@v3
+    - name: Checking out Project
+      uses: actions/checkout@v6
+
+    - name: Use Setup Node.js [24.x]
+      uses: actions/setup-node@v6
       with:
-        node-version: 20.x
+        node-version: 24.x
         registry-url: 'https://registry.npmjs.org'
         cache: 'npm'
 
     - name: Installing Dependencies
       run: npm ci
 
+    - name: Running Tests
+      run: npm test
+
     - name: Compiling TypeScript
-      run: tsc
-  
-    - name: Copy Files 
+      run: rm -rf build && npx tsc
+
+    - name: Copy Files
       run: cp package.json ./build/
 
     - name: Publishing Package
       working-directory: ./build
-      run: npm publish --access public 
+      run: npm publish --access public
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}    
-
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
