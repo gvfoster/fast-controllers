@@ -196,7 +196,7 @@ export default class FastController implements RouteOptions {
      * @param reply - The FastifyReply
      * @param done - The Fastify done callback
      */
-    public preValidation = (request: FastifyRequest, reply: FastifyReply, done: (err?: Error) => void): void | Promise<unknown> | string => {
+    public preValidation = (request: FastifyRequest, reply: FastifyReply, done: (err?: Error) => void): void | Promise<unknown> => {
 
         if (this.onPreValidation !== undefined && typeof this.onPreValidation === 'function') {
             return this.onPreValidation(request, reply, done)
@@ -211,7 +211,7 @@ export default class FastController implements RouteOptions {
      * @param reply 
      * @param done 
      */
-    public onPreValidation?(request: FastifyRequest, reply: FastifyReply, done: (err?: Error) => void): void | Promise<unknown> | string
+    public onPreValidation?(request: FastifyRequest, reply: FastifyReply, done: (err?: Error) => void): void | Promise<unknown>
 
 
 

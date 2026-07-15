@@ -1,6 +1,6 @@
 {
     "name": "fast-controllers",
-    "version": "5.1.2",
+    "version": "5.2.0",
     "description": "class based controllers, and implied folder route mapping for Fastify",
     "author": { "name": "Greg Foster (gvfoster)" },
     "main": "./index.js",
@@ -21,11 +21,12 @@
         "test": "tsc -p tsconfig.tests.json && node --test build/tests/**/*.test.js",
         "run-example": "ts-node examples/index.ts"
     },
-    "dependencies": { 
-        "fastify": "^5.4.0"
+    "peerDependencies": {
+        "fastify": "^5.8.5"
     },
     "devDependencies": {
+        "fastify": "5.8.5",
         "ts-node": "^10.9.2",
-        "typescript": "^5.8.3"
+        "typescript": "^6.0.3"
     }
 }

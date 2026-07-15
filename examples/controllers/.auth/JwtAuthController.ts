@@ -11,7 +11,7 @@ class JwtAuthController extends SecureFastController {
     private tokenKey = 'testkey'
     protected userSub?: string
 
-    public override onPreValidation(_request: FastifyRequest, _reply: FastifyReply, done: (err?: Error) => void): void | Promise<unknown> | string {
+    public override onPreValidation(_request: FastifyRequest, _reply: FastifyReply, done: (err?: Error) => void): void | Promise<unknown> {
 
         try{
 

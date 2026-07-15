@@ -1,14 +1,12 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
-    "display": "Node 16 + ESM + Strictest",
+    "display": "Node 20 + CommonJS + Strictest",
     "compilerOptions": {
-      "lib": [
-        "es2021"
-      ],
-      "module": "CommonJS",
-      "target": "ES2022",
+      "module": "node16",
+      "target": "ES2023",
       "declaration": true,
       "strict": true,
+      "rootDir": "src",
       "outDir": "build",
       "removeComments": true,
       "esModuleInterop": true,
